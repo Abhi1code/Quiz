@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.example.immadisairaj.quiz.api.Api;
 import com.example.immadisairaj.quiz.api.QuizQuestions;
 import com.example.immadisairaj.quiz.api.Result;
+import com.example.immadisairaj.quiz.fragment.Difficulty_fragment;
 import com.example.immadisairaj.quiz.question.Question;
 
 import java.io.UnsupportedEncodingException;
@@ -24,40 +25,52 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class HomeAcitivity extends AppCompatActivity  {
+public class HomeAcitivity extends AppCompatActivity implements Difficulty_fragment.level {
+
     Button start;
     ProgressBar progressBar;
     Question q;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
-        start=findViewById(R.id.home_start);
-        progressBar=findViewById(R.id.progressBar2);
-        start.setOnClickListener(onClickListener);
-
-
-    }
-    View.OnClickListener onClickListener=new View.OnClickListener() {
+    View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            if(view.getId()==R.id.home_start){
-                progressBar.setVisibility(View.VISIBLE);
-                q=new Question(getApplicationContext());
-                view.setClickable(false);
-                fetchApi();
+            if (view.getId() == R.id.home_start) {
+
+                Difficulty_fragment fragment = new Difficulty_fragment();
+                fragment.show(getFragmentManager(), "Difficulty fragment");
+
             }
         }
     };
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
+        start = findViewById(R.id.home_start);
+        progressBar = findViewById(R.id.progressBar2);
+        start.setOnClickListener(onClickListener);
 
-    public void fetchApi() {
+    }
+
+    @Override
+    public void diff_level(String level) {
+        progressBar.setVisibility(View.VISIBLE);
+        q = new Question(getApplicationContext());
+        start.setClickable(false);
+        if (level.equals("Any Difficulty")) {
+            fetchApi("medium");
+        } else {
+            fetchApi(level.trim().toLowerCase());
+        }
+    }
+
+    public void fetchApi(String level) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         Api api = retrofit.create(Api.class);
-        Call<QuizQuestions> call = api.getQuizQuestions("url3986", 10, "medium", "multiple");
+        Call<QuizQuestions> call = api.getQuizQuestions("url3986", 10, level, "multiple");
         call.enqueue(new Callback<QuizQuestions>() {
             @Override
             public void onResponse(Call<QuizQuestions> call, Response<QuizQuestions> response) {
@@ -82,15 +95,15 @@ public class HomeAcitivity extends AppCompatActivity  {
                             int ran = random.nextInt(4);
                             setOptions(r, ran);
 
-                            q.Answer.add(ran+1);
+                            q.Answer.add(ran + 1);
                         }
                         Log.v("answers", q.Answer.toString());
                     }
                 }
                 progressBar.setVisibility(View.INVISIBLE);
                 start.setClickable(true);
-                Intent intent=new Intent(HomeAcitivity.this,QuizActivity.class);
-                intent.putExtra("question",q);
+                Intent intent = new Intent(HomeAcitivity.this, QuizActivity.class);
+                intent.putExtra("question", q);
                 startActivity(intent);
 
             }
@@ -206,6 +219,7 @@ public class HomeAcitivity extends AppCompatActivity  {
                 break;
         }
     }
+
 }
 
 
